@@ -11,7 +11,6 @@ const (
 	registryHost    = "rekvizitai.vz.lt"
 	registryBaseURL = registryScheme + "://" + registryHost
 
-	userAgent      = "rekvizitupaieska/1.0 (+https://github.com/pauliusgin/rekvizitupaieska)"
 	requestTimeout = 10 * time.Second
 	maxMatches     = 3
 )

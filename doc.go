@@ -36,7 +36,8 @@
 // callers that do need it: [ClientParams.HTTPClient] supplies a transport, a proxy or a
 // timeout other than the default 10 seconds. Everything else about a client is fixed — the
 // registry it talks to, the User-Agent it names this library with, and the match gate
-// described below.
+// described below. The User-Agent carries the version of this module the calling binary was
+// built against, or "devel" when it was built from a source checkout.
 //
 // A [Client] is safe for concurrent use and worth keeping rather than rebuilding: it holds an
 // [net/http.Client], which pools connections, and a search by name fetches its detail pages
