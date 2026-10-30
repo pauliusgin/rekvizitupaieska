@@ -24,6 +24,16 @@ var goldenSearchResultURLs = []string{
 
 const goldenSearchResultCount = 4
 
+// highlightedSearchResultsFixturePath is the registry's results page for "diginet". Diginet LTU
+// is a promoted listing, so its block carries "company highlighted" — a genuine result that a
+// filter on the block class would drop.
+const highlightedSearchResultsFixturePath = "testdata/company_lookup_highlighted_response.html"
+
+var goldenHighlightedSearchResultURLs = []string{
+	"https://rekvizitai.vz.lt/imone/plius/",
+	"https://rekvizitai.vz.lt/imone/diginetas/",
+}
+
 // similarCompanyURLs are the companies the *detail* page lists in its "panašios įmonės"
 // sidebar. That sidebar is built from the same markup as a search result, so these are what
 // a results parser returns when it is pointed at a detail page and its selector is not
@@ -45,12 +55,21 @@ func TestParseSearchResultURLsReadsTheSavedResultsPage(t *testing.T) {
 	assertURLsEqual(t, got, goldenSearchResultURLs)
 }
 
+func TestParseSearchResultURLsKeepsHighlightedResults(t *testing.T) {
+	got, err := parseSearchResultURLs(registryBase, openFixture(t, highlightedSearchResultsFixturePath))
+	if err != nil {
+		t.Fatalf("parseSearchResultURLs(%s) returned error %v", highlightedSearchResultsFixturePath, err)
+	}
+
+	assertURLsEqual(t, got, goldenHighlightedSearchResultURLs)
+}
+
 // TestParseSearchResultURLsIgnoresSimilarCompanies feeds the parser a company *detail* page.
 // The detail page's "similar companies" sidebar uses the same div.block-list > div.list-item
 // > div.company > div.company-info > a.company-title markup as a search result and would
-// otherwise come back as five perfectly plausible, entirely wrong companies. The result
-// blocks are told apart by their class: exactly "company" on a results page, "company
-// highlighted" in the sidebar.
+// otherwise come back as five perfectly plausible, entirely wrong companies. The block class
+// cannot tell them apart — "highlighted" marks a promoted listing on both pages — so the
+// detail page is recognised as a whole, by the registration code only it carries.
 func TestParseSearchResultURLsIgnoresSimilarCompanies(t *testing.T) {
 	got, err := parseSearchResultURLs(registryBase, openFixture(t, companyInfoFixturePath))
 	if err != nil {
@@ -109,6 +128,14 @@ func TestParseSearchResultURLs(t *testing.T) {
 			name: "unparseable href skipped",
 			page: searchResultsPageWith(`<a class="company-title" href="https://rekvizitai.vz.lt:port/imone/citma/">Citma</a>`),
 			want: []string{},
+		},
+		{
+			name: "highlighted result block kept",
+			page: `<html><body><div class="block-list p-0"><div class="list-item">` +
+				`<div class="company highlighted"><div class="company-info">` +
+				`<a class="company-title" href="/imone/plius/">Diginet LTU</a>` +
+				`</div></div></div></div></body></html>`,
+			want: []string{"https://rekvizitai.vz.lt/imone/plius/"},
 		},
 		{
 			name: "document order preserved",

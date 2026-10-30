@@ -9,7 +9,7 @@ import (
 
 const (
 	companyNameSelector    = "div.main-info h1.title"
-	companyLogoSelector    = `img[itemprop="logo"]`
+	companyLogoSelector    = "div.main-info div.logo img"
 	companyAddressSelector = "#copy_address"
 	companyIDSelector      = "#ccode"
 	companyVatIDSelector   = "#pcode"

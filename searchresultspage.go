@@ -12,10 +12,6 @@ import (
 // what both a search by name and a search by code come back as.
 const searchResultBlockSelector = "div.block-list div.list-item div.company"
 
-// a result block's class is exactly "company", a similar-company block's is "company
-// highlighted". Rejecting the class is what stops a detail page from parsing as a page of results.
-const similarCompanyClass = ".highlighted"
-
 const searchResultLinkSelector = "a.company-title"
 
 const searchResultCountSelector = "div.breadcrumb strong"
@@ -30,9 +26,12 @@ func parseSearchResultURLs(baseURL *url.URL, page io.Reader) ([]string, error) {
 }
 
 func extractSearchResultURLs(baseURL *url.URL, document *goquery.Document) []string {
-	resultBlocks := document.Find(searchResultBlockSelector).Not(similarCompanyClass)
-
 	searchResultURLs := []string{}
+	if isCompanyInfoPage(document) {
+		return searchResultURLs
+	}
+
+	resultBlocks := document.Find(searchResultBlockSelector)
 	resultBlocks.Find(searchResultLinkSelector).Each(func(_ int, resultLink *goquery.Selection) {
 		href, exists := resultLink.Attr("href")
 		if !exists {
@@ -44,6 +43,14 @@ func extractSearchResultURLs(baseURL *url.URL, document *goquery.Document) []str
 	})
 
 	return searchResultURLs
+}
+
+// isCompanyInfoPage tells a detail page apart from a results page. The detail page's
+// "Taip pat rekomenduojame" sidebar reuses the result block markup, and the block class cannot
+// tell them apart: "highlighted" marks a promoted listing, which shows up both in that sidebar
+// and as a genuine search result.
+func isCompanyInfoPage(document *goquery.Document) bool {
+	return document.Find(companyIDSelector).Length() > 0
 }
 
 func parseSearchResultCount(document *goquery.Document) (int, bool) {

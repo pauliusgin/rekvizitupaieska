@@ -254,7 +254,7 @@ func companyInfoPageWith(fields companyInfoPageFields) string {
 	}
 	if fields.LogoSrc != "" {
 		fmt.Fprintf(&page,
-			`<div class="logo"><a href="#"><img class="img-fluid" src="%s" itemprop="logo" /></a></div>`,
+			`<div class="logo"><a href="#"><img class="img-fluid" src="%s" /></a></div>`,
 			fields.LogoSrc)
 	}
 	page.WriteString(`</div><div class="company mid-info"><table><tbody>`)

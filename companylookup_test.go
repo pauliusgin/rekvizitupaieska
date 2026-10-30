@@ -41,6 +41,25 @@ func TestGetCompanyInfoByIDReadsTheSavedDetailPage(t *testing.T) {
 	}
 }
 
+// TestGetCompanyInfoByIDFindsAHighlightedResult covers a company whose only result block is a
+// promoted listing, as Diginet LTU's (126222639) is on the live registry.
+func TestGetCompanyInfoByIDFindsAHighlightedResult(t *testing.T) {
+	highlightedResultsPage := strings.Replace(
+		resultsPageWith(1, orlenCompanyPath), `class="company"`, `class="company highlighted"`, 1)
+	server := newRegistryTestServer(t, registryTestPages{
+		registryLookupPath: {Body: highlightedResultsPage},
+		orlenCompanyPath:   {FixturePath: companyInfoFixturePath},
+	})
+	client := newClientForTestServer(t, server)
+
+	got, err := client.GetCompanyInfoByID(t.Context(), goldenCompanyInfo.CompanyID)
+	if err != nil {
+		t.Fatalf("GetCompanyInfoByID returned error %v", err)
+	}
+
+	assertCompanyInfoEqual(t, got, companyInfoServedFrom(server, goldenCompanyInfo))
+}
+
 func TestGetCompanyInfoByIDReportsNoResults(t *testing.T) {
 	server := newRegistryTestServer(t, registryTestPages{
 		registryLookupPath: {Body: resultsPageWith(0)},
